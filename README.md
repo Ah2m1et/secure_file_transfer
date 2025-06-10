@@ -61,7 +61,8 @@ Bu proje, bilgisayar ağları ve siber güvenlik alanındaki teorik bilgilerin p
 
 ## Proje Tanıtım Videosu
 
-[YouTube - Proje Tanıtım Videosu](#)
+[YouTube - Proje Tanıtım Videosu](https://youtu.be/aRP4iPs8mjo)
+
 
 Katkılarınızı bekliyoruz! Lütfen bir pull request gönderin.
 
