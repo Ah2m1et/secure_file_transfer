@@ -119,11 +119,17 @@ def handle_client(conn, rsa_cipher, addr, status_callback):
                         update_status(f"[*] Dosya hash'i alındı: {original_hash_from_sender}")
 
                     elif message['type'] == 'FRAGMENT':
-                        # ... (Bu bölümdeki tüm print'leri de update_status ile değiştir)
-                        update_status(f"[*] Fragment {message['fragment_id']}/{message['total_fragments']} alındı.")
-                        # ...
-                        # Diğer kodlar...
-                        
+                        update_status(f"[*] Fragment {message['fragment_number']}/{message['total_fragments']} alındı.")
+                        fragment = {
+                            'fragment_number': message['fragment_number'],  # <-- DÜZELTİLDİ
+                            'total_fragments': message['total_fragments'],
+                            'data': base64.b64decode(message['data'])
+                        }
+                        reassembler.add_fragment(fragment)
+                        update_status(f"[*] Fragment eklendi: {fragment['fragment_number']}")
+                        fragments_received += 1
+                        total_fragments = message['total_fragments']
+
                     elif message['type'] == 'EOF':
                         update_status("[*] Dosya transferi bitti sinyali alındı.")
                         break
@@ -137,8 +143,26 @@ def handle_client(conn, rsa_cipher, addr, status_callback):
             
     # Dosya işleme mantığı (tüm print'leri update_status ile değiştir)
     if aes_key and reassembler.is_complete(total_fragments):
-        # ...
-        update_status("[✓] Bütünlük doğrulandı! Dosya sağlam.")
-        # ...
+        try:
+            combined_data = reassembler.reassemble()
+            nonce = combined_data[:16]
+            tag = combined_data[16:32]
+            cipher_text = combined_data[32:]
+            aes_cipher = AESCipher(aes_key)
+            original_data = aes_cipher.decrypt(cipher_text, nonce, tag)
+            received_file_hash = hashlib.sha256(original_data).hexdigest()
+            update_status(f"[*] Alınan dosyanın hash'i: {received_file_hash}")
+            update_status(f"[*] Göndericiden gelen hash: {original_hash_from_sender}")
+
+            if original_hash_from_sender and received_file_hash == original_hash_from_sender:
+                update_status("[✓] Bütünlük doğrulandı! Dosya sağlam.")
+                # Dosyayı kaydet
+                with open(OUTPUT_FILE, 'wb') as f:
+                    f.write(original_data)
+                update_status(f"[*] Dosya başarıyla kaydedildi: {OUTPUT_FILE}")
+            else:
+                update_status("[X] BÜTÜNLÜK HATASI! Dosya bozulmuş veya değiştirilmiş olabilir.")
+        except Exception as e:
+            update_status(f"[!] Dosya işlenirken hata: {e}")
     else:
         update_status("[!] Dosya işleme başarısız - eksik parça veya anahtar sorunu!")

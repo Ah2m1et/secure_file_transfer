@@ -72,7 +72,7 @@ def send_file_logic(file_path, status_callback, auth_token="secure_client_2024")
         for i, fragment in enumerate(fragments):
             fragment_data = {
                 'type': 'FRAGMENT',
-                'fragment_id': fragment['fragment_number'],
+                'fragment_number': fragment['fragment_number'],  # <-- DÜZELTİLDİ
                 'total_fragments': fragment['total_fragments'],
                 'data': base64.b64encode(fragment['data']).decode()
             }
