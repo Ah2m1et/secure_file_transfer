@@ -65,5 +65,3 @@ Bu proje, bilgisayar ağları ve siber güvenlik alanındaki teorik bilgilerin p
 
 
 Katkılarınızı bekliyoruz! Lütfen bir pull request gönderin.
-
-MIT Lisansı ile lisanslanmıştır.
